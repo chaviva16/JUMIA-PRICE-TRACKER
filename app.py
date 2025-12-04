@@ -5,14 +5,14 @@ from bs4 import BeautifulSoup
 # -------------------------
 # Load API KEY 
 # -------------------------
-try:
-    API_KEY = st.secrets["SCRAPER_API_KEY"]
-except:
+if "SCRAPER_API_KEY" not in st.secrets:
     st.error("❌ SCRAPER_API_KEY missing! Add it in Streamlit → Settings → Secrets.")
     st.stop()
 
+API_KEY = st.secrets["SCRAPER_API_KEY"]
+
 # -------------------------
-# Scraper Function (Uses ScraperAPI)
+# Scraper Function (with API key error detection)
 # -------------------------
 def scrape_jumia(product_name):
     search = product_name.replace(" ", "+")
@@ -26,8 +26,17 @@ def scrape_jumia(product_name):
     try:
         response = requests.get(scraper_url, timeout=30)
 
+        # -------------------------
+        # API key error handling
+        # -------------------------
+        text_lower = response.text.lower()
+        if response.status_code == 401 or "invalid api key" in text_lower:
+            return {"error": "❌ Your API key is invalid or expired. Update it in Streamlit Secrets."}
+        if "exceeded" in text_lower or "quota" in text_lower:
+            return {"error": "⚠️ Your ScraperAPI monthly quota has been used up. Get a new key."}
+
         if response.status_code != 200:
-            return {"error": "Failed to reach Jumia. Try again."}
+            return {"error": f"Failed to reach Jumia (Status {response.status_code}). Try again."}
 
         soup = BeautifulSoup(response.text, "html.parser")
         items = soup.find_all("article", class_="prd")
@@ -46,10 +55,7 @@ def scrape_jumia(product_name):
 
                 # Safe link
                 href = link_tag.get("href")
-                link = (
-                    "https://www.jumia.com.ng" + href
-                    if href else "Link not available"
-                )
+                link = "https://www.jumia.com.ng" + href if href else "Link not available"
 
                 # Safe image
                 img_url = None
