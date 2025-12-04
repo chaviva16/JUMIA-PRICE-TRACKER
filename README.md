@@ -19,13 +19,13 @@ A simple **Streamlit** app to search for products on **Jumia Nigeria** and see t
    ```bash
    git clone https://github.com/chaviva16/JUMIA-PRICE-TRACKER.git
    cd JUMIA-PRICE-TRACKER
-   Install dependencies:
+   
 
-2.Install dependencies:
+2. Install dependencies:
 
 pip install streamlit requests beautifulsoup4
 
-3.Add ScraperAPI key in .streamlit/secrets.toml:
+3. Add ScraperAPI key in .streamlit/secrets.toml:
 
 SCRAPER_API_KEY = "your_api_key_here"
 
